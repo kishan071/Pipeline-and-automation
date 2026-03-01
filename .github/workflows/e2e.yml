@@ -128,22 +128,20 @@ jobs:
             # Debug: Show file exists
             echo "JSON report found, parsing statistics..."
             
-            # Parse Playwright JSON report structure correctly
-            PASSED=$(jq -r '.suites[].specs[].tests[] | select(.results[].status == "passed" or .results[].status == "expected") | .title' results.json 2>/dev/null | wc -l || echo "0")
-            FAILED=$(jq -r '.suites[].specs[].tests[] | select(.results[].status == "failed" or .results[].status == "unexpected" or .results[].status == "timedOut") | .title' results.json 2>/dev/null | wc -l || echo "0")
-            SKIPPED=$(jq -r '.suites[].specs[].tests[] | select(.results[].status == "skipped") | .title' results.json 2>/dev/null | wc -l || echo "0")
+            # Count total unique tests
+            TOTAL=$(jq '[.suites[].specs[].tests[]] | length' results.json 2>/dev/null || echo "0")
             
-            # Calculate total
-            TOTAL=$((PASSED + FAILED + SKIPPED))
+            # Count tests by their final status (last result in results array)
+            # Passed: tests where the last result is passed/expected
+            PASSED=$(jq '[.suites[].specs[].tests[] | select(.results[-1].status == "passed" or .results[-1].status == "expected")] | length' results.json 2>/dev/null || echo "0")
             
-            # If all are zero, try alternative JSON structure
-            if [ "$TOTAL" -eq 0 ]; then
-              echo "Trying alternative JSON parsing..."
-              PASSED=$(jq '[.. | objects | select(.status == "passed" or .status == "expected")] | length' results.json 2>/dev/null || echo "0")
-              FAILED=$(jq '[.. | objects | select(.status == "failed" or .status == "unexpected" or .status == "timedOut")] | length' results.json 2>/dev/null || echo "0")
-              SKIPPED=$(jq '[.. | objects | select(.status == "skipped")] | length' results.json 2>/dev/null || echo "0")
-              TOTAL=$((PASSED + FAILED + SKIPPED))
-            fi
+            # Failed: tests where the last result is failed/unexpected/timedOut
+            FAILED=$(jq '[.suites[].specs[].tests[] | select(.results[-1].status == "failed" or .results[-1].status == "unexpected" or .results[-1].status == "timedOut")] | length' results.json 2>/dev/null || echo "0")
+            
+            # Skipped: tests where the last result is skipped
+            SKIPPED=$(jq '[.suites[].specs[].tests[] | select(.results[-1].status == "skipped")] | length' results.json 2>/dev/null || echo "0")
+            
+            echo "Parsed: Total=$TOTAL, Passed=$PASSED, Failed=$FAILED, Skipped=$SKIPPED"
           else
             echo "No JSON report found"
             TOTAL=0
