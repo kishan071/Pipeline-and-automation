@@ -101,6 +101,17 @@ jobs:
       - name: Generate JSON report for stats
         run: npx playwright merge-reports --reporter json ./all-blob-reports > results.json
 
+      - name: Debug JSON structure
+        if: always()
+        run: |
+          if [ -f results.json ]; then
+            echo "JSON file exists, size: $(wc -c < results.json) bytes"
+            echo "First 500 chars of JSON:"
+            head -c 500 results.json || true
+          else
+            echo "JSON file not found!"
+          fi
+
       - name: Upload merged HTML report
         uses: actions/upload-artifact@v4
         if: always()
@@ -114,11 +125,27 @@ jobs:
         run: |
           # Extract test statistics from the JSON report
           if [ -f results.json ]; then
-            TOTAL=$(jq '[.suites[].specs[]] | length' results.json 2>/dev/null || echo "0")
-            PASSED=$(jq '[.suites[].specs[].tests[] | select(.status == "expected" or .status == "passed")] | length' results.json 2>/dev/null || echo "0")
-            FAILED=$(jq '[.suites[].specs[].tests[] | select(.status == "unexpected" or .status == "failed")] | length' results.json 2>/dev/null || echo "0")
-            SKIPPED=$(jq '[.suites[].specs[].tests[] | select(.status == "skipped")] | length' results.json 2>/dev/null || echo "0")
+            # Debug: Show file exists
+            echo "JSON report found, parsing statistics..."
+            
+            # Parse Playwright JSON report structure correctly
+            PASSED=$(jq -r '.suites[].specs[].tests[] | select(.results[].status == "passed" or .results[].status == "expected") | .title' results.json 2>/dev/null | wc -l || echo "0")
+            FAILED=$(jq -r '.suites[].specs[].tests[] | select(.results[].status == "failed" or .results[].status == "unexpected" or .results[].status == "timedOut") | .title' results.json 2>/dev/null | wc -l || echo "0")
+            SKIPPED=$(jq -r '.suites[].specs[].tests[] | select(.results[].status == "skipped") | .title' results.json 2>/dev/null | wc -l || echo "0")
+            
+            # Calculate total
+            TOTAL=$((PASSED + FAILED + SKIPPED))
+            
+            # If all are zero, try alternative JSON structure
+            if [ "$TOTAL" -eq 0 ]; then
+              echo "Trying alternative JSON parsing..."
+              PASSED=$(jq '[.. | objects | select(.status == "passed" or .status == "expected")] | length' results.json 2>/dev/null || echo "0")
+              FAILED=$(jq '[.. | objects | select(.status == "failed" or .status == "unexpected" or .status == "timedOut")] | length' results.json 2>/dev/null || echo "0")
+              SKIPPED=$(jq '[.. | objects | select(.status == "skipped")] | length' results.json 2>/dev/null || echo "0")
+              TOTAL=$((PASSED + FAILED + SKIPPED))
+            fi
           else
+            echo "No JSON report found"
             TOTAL=0
             PASSED=0
             FAILED=0
@@ -133,5 +160,3 @@ jobs:
           echo "| ❌ Failed | $FAILED |" >> $GITHUB_STEP_SUMMARY
           echo "| ⏭️ Skipped | $SKIPPED |" >> $GITHUB_STEP_SUMMARY
           echo "| 📝 Total | $TOTAL |" >> $GITHUB_STEP_SUMMARY
-          echo "" >> $GITHUB_STEP_SUMMARY
-          echo "📥 [Download Full Report](https://github.com/${{ github.repository }}/actions/runs/${{ github.run_id }})" >> $GITHUB_STEP_SUMMARY
