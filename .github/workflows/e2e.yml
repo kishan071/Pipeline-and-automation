@@ -99,17 +99,28 @@ jobs:
         run: npx playwright merge-reports --reporter html ./all-blob-reports
 
       - name: Generate JSON report for stats
-        run: npx playwright merge-reports --reporter json ./all-blob-reports > results.json
+        continue-on-error: true
+        run: |
+          echo "Generating JSON report..."
+          npx playwright merge-reports --reporter json ./all-blob-reports > results.json
+          echo "JSON generation completed, file size: $(wc -c < results.json 2>/dev/null || echo '0') bytes"
 
       - name: Debug JSON structure
         if: always()
         run: |
           if [ -f results.json ]; then
             echo "JSON file exists, size: $(wc -c < results.json) bytes"
-            echo "First 500 chars of JSON:"
-            head -c 500 results.json || true
+            echo "=== First 1000 chars of JSON ==="
+            head -c 1000 results.json || true
+            echo ""
+            echo "=== Structure check ==="
+            jq 'keys' results.json 2>/dev/null || echo "Failed to parse JSON"
+            echo "=== Test count attempts ==="
+            jq '[.suites[].specs[].tests[]] | length' results.json 2>/dev/null || echo "Method 1 failed"
+            jq '.suites | length' results.json 2>/dev/null || echo "Method 2 failed"
           else
             echo "JSON file not found!"
+            ls -la results.json 2>/dev/null || echo "File does not exist"
           fi
 
       - name: Upload merged HTML report
@@ -124,8 +135,7 @@ jobs:
         if: always()
         run: |
           # Extract test statistics from the JSON report
-          if [ -f results.json ]; then
-            # Debug: Show file exists
+          if [ -f results.json ] && [ -s results.json ]; then
             echo "JSON report found, parsing statistics..."
             
             # Count total unique tests
@@ -142,12 +152,38 @@ jobs:
             SKIPPED=$(jq '[.suites[].specs[].tests[] | select(.results[-1].status == "skipped")] | length' results.json 2>/dev/null || echo "0")
             
             echo "Parsed: Total=$TOTAL, Passed=$PASSED, Failed=$FAILED, Skipped=$SKIPPED"
+            
+            # If parsing returned zeros, try alternative methods
+            if [ "$TOTAL" -eq 0 ]; then
+              echo "Primary parsing returned 0, trying alternative structure..."
+              
+              # Try simpler structure - count all tests without nested navigation
+              TOTAL=$(jq '.. | objects | select(has("tests")) | .tests | length' results.json 2>/dev/null | awk '{s+=$1} END {print s}' || echo "0")
+              
+              # Try counting by status at any level
+              PASSED=$(jq '.. | objects | select(.status == "passed" or .status == "expected") | .status' results.json 2>/dev/null | wc -l || echo "0")
+              FAILED=$(jq '.. | objects | select(.status == "failed" or .status == "unexpected" or .status == "timedOut") | .status' results.json 2>/dev/null | wc -l || echo "0")
+              SKIPPED=$(jq '.. | objects | select(.status == "skipped") | .status' results.json 2>/dev/null | wc -l || echo "0")
+              
+              echo "Alternative parsing: Total=$TOTAL, Passed=$PASSED, Failed=$FAILED, Skipped=$SKIPPED"
+            fi
           else
-            echo "No JSON report found"
+            echo "No valid JSON report found, checking HTML report..."
             TOTAL=0
             PASSED=0
             FAILED=0
             SKIPPED=0
+            
+            # Fallback: Try to extract from HTML report if it exists
+            if [ -f playwright-report/index.html ]; then
+              echo "HTML report exists, attempting to extract stats..."
+              # This is a simple grep-based extraction - may not be accurate
+              PASSED=$(grep -o 'passed' playwright-report/index.html 2>/dev/null | wc -l || echo "0")
+              FAILED=$(grep -o 'failed' playwright-report/index.html 2>/dev/null | wc -l || echo "0")
+              SKIPPED=$(grep -o 'skipped' playwright-report/index.html 2>/dev/null | wc -l || echo "0")
+              TOTAL=$((PASSED + FAILED + SKIPPED))
+              echo "HTML parsing: Total=$TOTAL, Passed=$PASSED, Failed=$FAILED, Skipped=$SKIPPED"
+            fi
           fi
           
           echo "### 📊 Test Results Summary" >> $GITHUB_STEP_SUMMARY
