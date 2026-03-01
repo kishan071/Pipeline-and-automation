@@ -66,7 +66,7 @@ jobs:
           retention-days: 1
 
   merge-reports:
-    name: Merge Playwright Reports
+    name: Test Results
     if: always()
     needs: [playwright-tests]
     runs-on: ubuntu-latest
@@ -96,7 +96,7 @@ jobs:
           merge-multiple: true
 
       - name: Merge reports
-        run: npx playwright merge-reports --reporter html ./all-blob-reports
+        run: npx playwright merge-reports --reporter html,json ./all-blob-reports
 
       - name: Upload merged HTML report
         uses: actions/upload-artifact@v4
@@ -106,13 +106,20 @@ jobs:
           path: playwright-report/
           retention-days: 30
 
-      - name: Add report download link to summary
+      - name: Generate test summary
         if: always()
         run: |
-          echo "### 📊 Playwright Test Report" >> $GITHUB_STEP_SUMMARY
+          # Extract test statistics from the JSON report
+          TOTAL=$(jq '.suites[].specs | length' results.json | awk '{s+=$1} END {print s}')
+          PASSED=$(jq '[.suites[].specs[].tests[] | select(.status == "expected")] | length' results.json)
+          FAILED=$(jq '[.suites[].specs[].tests[] | select(.status == "unexpected")] | length' results.json)
+          SKIPPED=$(jq '[.suites[].specs[].tests[] | select(.status == "skipped")] | length' results.json)
+          
+          echo "### 📊 Test Results Summary" >> $GITHUB_STEP_SUMMARY
           echo "" >> $GITHUB_STEP_SUMMARY
-          echo "✅ Report generated successfully!" >> $GITHUB_STEP_SUMMARY
-          echo "" >> $GITHUB_STEP_SUMMARY
-          echo "📥 [Download the merged Playwright report](https://github.com/${{ github.repository }}/actions/runs/${{ github.run_id }})" >> $GITHUB_STEP_SUMMARY
-          echo "" >> $GITHUB_STEP_SUMMARY
-          echo "The report artifact is available for 30 days." >> $GITHUB_STEP_SUMMARY
+          echo "| Status | Count |" >> $GITHUB_STEP_SUMMARY
+          echo "|--------|-------|" >> $GITHUB_STEP_SUMMARY
+          echo "| ✅ Passed | $PASSED |" >> $GITHUB_STEP_SUMMARY
+          echo "| ❌ Failed | $FAILED |" >> $GITHUB_STEP_SUMMARY
+          echo "| ⏭️ Skipped | $SKIPPED |" >> $GITHUB_STEP_SUMMARY
+          echo "| 📝 Total | $TOTAL |" >> $GITHUB_STEP_SUMMARY
