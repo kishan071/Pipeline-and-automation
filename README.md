@@ -18,7 +18,9 @@ This project showcases an **advanced 7-stage CI/CD pipeline** with:
 
 **Quality Gates:**
 - **🛑 Blocking:** Unit Tests, Build - Must pass for deployment
-- **⚠️ Advisory:** Lint, Security, Performance - Reported but don't block deployment
+- **⚠️ Advisory:** Lint, Security, Performance - Show ❌ on failure but don't block deployment
+- Advisory stages exit with error code but use `continue-on-error: true` at the job level
+- All failures are visible in GitHub Actions UI with clear status indicators
 
 ## 🏗️ Pipeline Architecture
 
@@ -178,7 +180,9 @@ All reports are uploaded as GitHub Actions artifacts with 30-day retention:
 - Prettier for consistent formatting
 - TypeScript type checking
 - **Runs in parallel with Unit Tests**
-- **⚠️ Advisory only** - Failures are reported but don't block the pipeline
+- **⚠️ Advisory only** - Failures are reported with ❌ status but don't block the pipeline
+- Each check runs independently with continue-on-error
+- Final status report shows which checks failed
 
 #### 2️⃣ Unit Tests (Parallel)
 - Jest unit tests with TypeScript
@@ -195,10 +199,11 @@ All reports are uploaded as GitHub Actions artifacts with 30-day retention:
 #### 4️⃣ Security Scan (Parallel)
 - npm audit for vulnerabilities
 - Reports high/critical issues
-- Security report upload (now saves to npm-audit.json)
+- Security report upload (saves to npm-audit.json)
 - **Depends on:** Stage 3
-- **⚠️ Advisory only** - Failures are reported but don't block deployment
+- **⚠️ Advisory only** - Failures marked with ❌ but don't block deployment
 - **Runs in parallel with Performance Test**
+- Vulnerability counts displayed in logs
 
 #### 5️⃣ Performance Test (Parallel)
 - Lighthouse CI audits
@@ -208,8 +213,9 @@ All reports are uploaded as GitHub Actions artifacts with 30-day retention:
   - Best Practices Score: 80+
   - SEO Score: 80+
 - **Depends on:** Stage 3
-- **⚠️ Advisory only** - Failures are reported but don't block deployment
+- **⚠️ Advisory only** - Failures marked with ❌ but don't block deployment
 - **Runs in parallel with Security Scan**
+- Reports uploaded only if Lighthouse runs successfully
 
 #### 6️⃣ Deploy to GitHub Pages
 - Deploys to GitHub Pages

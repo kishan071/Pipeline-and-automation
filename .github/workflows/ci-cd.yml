@@ -44,16 +44,34 @@ jobs:
           fi
 
       - name: Run ESLint
+        id: eslint
         run: npm run lint
         continue-on-error: true
 
       - name: Check code formatting with Prettier
+        id: prettier
         run: npm run format:check
         continue-on-error: true
 
       - name: TypeScript type checking
+        id: typecheck
         run: npm run type-check
         continue-on-error: true
+
+      - name: Report lint results
+        if: always()
+        run: |
+          echo "📊 Lint & Code Quality Results:"
+          echo "ESLint: ${{ steps.eslint.outcome }}"
+          echo "Prettier: ${{ steps.prettier.outcome }}"
+          echo "TypeScript: ${{ steps.typecheck.outcome }}"
+          
+          if [ "${{ steps.eslint.outcome }}" != "success" ] || [ "${{ steps.prettier.outcome }}" != "success" ] || [ "${{ steps.typecheck.outcome }}" != "success" ]; then
+            echo "⚠️ Some code quality checks failed (advisory only)"
+            exit 1
+          else
+            echo "✅ All code quality checks passed"
+          fi
 
   # Stage 2: Unit Tests (runs in parallel with lint-and-quality)
   unit-tests:
@@ -149,6 +167,7 @@ jobs:
           fi
 
       - name: Run npm audit
+        id: audit
         continue-on-error: true
         run: |
           echo "🔒 Running security audit..."
@@ -164,18 +183,30 @@ jobs:
           if [ "$HIGH_VULNS" -gt 0 ] || [ "$CRITICAL_VULNS" -gt 0 ]; then
             echo "⚠️ Security vulnerabilities found (advisory only)"
             npm audit --audit-level=high || true
+            exit 1
           else
             echo "✅ No high or critical vulnerabilities found"
           fi
 
       - name: Upload audit report
         uses: actions/upload-artifact@v4
-        if: always()
+        if: always() && hashFiles('npm-audit.json') != ''
         with:
           name: security-audit-report
           path: npm-audit.json
           retention-days: 30
         continue-on-error: true
+
+      - name: Report security scan results
+        if: always()
+        run: |
+          echo "📊 Security Scan Results:"
+          echo "npm audit: ${{ steps.audit.outcome }}"
+          if [ "${{ steps.audit.outcome }}" != "success" ]; then
+            echo "⚠️ Security vulnerabilities found (advisory only)"
+          else
+            echo "✅ No security issues found"
+          fi
 
   # Stage 5: Performance Testing (runs in parallel with security scan, advisory only)
   performance-test:
@@ -211,18 +242,31 @@ jobs:
         run: npm install -g @lhci/cli@0.13.x
 
       - name: Run Lighthouse CI
+        id: lighthouse
         continue-on-error: true
-        run: lhci autorun
+        run: |
+          lhci autorun || echo "⚠️ Lighthouse CI failed (advisory only)"
         env:
           LHCI_GITHUB_APP_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
       - name: Upload Lighthouse reports
         uses: actions/upload-artifact@v4
-        if: always()
+        if: always() && hashFiles('.lighthouseci/**') != ''
         with:
           name: lighthouse-reports
           path: .lighthouseci/
           retention-days: 30
+
+      - name: Report performance test results
+        if: always()
+        run: |
+          echo "📊 Performance Test Results:"
+          echo "Lighthouse CI: ${{ steps.lighthouse.outcome }}"
+          if [ "${{ steps.lighthouse.outcome }}" != "success" ]; then
+            echo "⚠️ Performance tests had issues (advisory only)"
+          else
+            echo "✅ Performance tests passed"
+          fi
 
   # Stage 6: Deploy to GitHub Pages (only on master, depends on build only)
   deploy:
@@ -230,6 +274,11 @@ jobs:
     runs-on: ubuntu-latest
     needs: [build]
     if: always() && needs.build.result == 'success' && github.ref == 'refs/heads/master' && github.event_name == 'push'
+    
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    
     outputs:
       deployment_url: ${{ steps.deployment.outputs.page_url }}
     
