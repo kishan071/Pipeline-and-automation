@@ -7,14 +7,18 @@ A production-ready, multi-stage CI/CD pipeline demonstrating best practices for 
 ## 📋 Overview
 
 This project showcases an **advanced 7-stage CI/CD pipeline** with:
-- **🎯 Parallel Execution** - Lint and Unit Tests run simultaneously
-- **✅ Code Quality** - ESLint, Prettier, TypeScript checks
-- **🧪 Unit Testing** - Jest with coverage reporting
-- **🔨 Build Process** - Automated build and artifact management
-- **🔒 Security Scanning** - npm audit vulnerability checks
-- **⚡ Performance Testing** - Lighthouse CI with performance budgets
-- **🚀 Automated Deployment** - GitHub Pages deployment on success
+- **🎯 Parallel Execution** - Lint and Unit Tests run simultaneously; Security and Performance tests run in parallel
+- **✅ Code Quality** - ESLint, Prettier, TypeScript checks (advisory)
+- **🧪 Unit Testing** - Jest with coverage reporting (blocking)
+- **🔨 Build Process** - Automated build and artifact management (blocking)
+- **🔒 Security Scanning** - npm audit vulnerability checks (advisory)
+- **⚡ Performance Testing** - Lighthouse CI with performance budgets (advisory)
+- **🚀 Automated Deployment** - GitHub Pages deployment (only blocked by build failures)
 - **🎭 E2E Testing** - Playwright tests on the live deployed site
+
+**Quality Gates:**
+- **🛑 Blocking:** Unit Tests, Build - Must pass for deployment
+- **⚠️ Advisory:** Lint, Security, Performance - Reported but don't block deployment
 
 ## 🏗️ Pipeline Architecture
 
@@ -22,37 +26,41 @@ This project showcases an **advanced 7-stage CI/CD pipeline** with:
 ┌─────────────────────────────────────────────────────────────┐
 │  Stage 1 & 2 (Parallel)                                      │
 │  ├─ 1️⃣ Lint & Code Quality (ESLint, Prettier, TypeScript)   │
+│  │  ⚠️ Advisory - doesn't block pipeline                     │
 │  └─ 2️⃣ Unit Tests (Jest with Coverage)                       │
+│     🛑 Blocking - must pass to continue                      │
 └─────────────────────┬───────────────────────────────────────┘
                       │
                       ▼
 ┌─────────────────────────────────────────────────────────────┐
 │  Stage 3                                                      │
 │  └─ 3️⃣ Build Application (Compile & Bundle)                  │
+│     🛑 Blocking - must pass to continue                      │
 └─────────────────────┬───────────────────────────────────────┘
                       │
-                      ▼
-┌─────────────────────────────────────────────────────────────┐
-│  Stage 4                                                      │
-│  └─ 4️⃣ Security Scan (npm audit)                             │
-└─────────────────────┬───────────────────────────────────────┘
-                      │
-                      ▼
-┌─────────────────────────────────────────────────────────────┐
-│  Stage 5                                                      │
-│  └─ 5️⃣ Performance Test (Lighthouse CI)                      │
-└─────────────────────┬───────────────────────────────────────┘
+         ┌────────────┴────────────┐
+         ▼                         ▼
+┌──────────────────┐    ┌──────────────────┐
+│  Stage 4         │    │  Stage 5         │
+│  4️⃣ Security Scan │    │  5️⃣ Performance   │
+│  (npm audit)     │    │  Test (Lighthouse)│
+│  ⚠️ Advisory      │    │  ⚠️ Advisory      │
+└──────────────────┘    └──────────────────┘
+         └────────────┬───────────┘
+                      │ (runs in parallel)
                       │
                       ▼ (master branch only)
 ┌─────────────────────────────────────────────────────────────┐
 │  Stage 6                                                      │
 │  └─ 6️⃣ Deploy to GitHub Pages                                │
+│     🚀 Depends only on Build (Stage 3)                       │
 └─────────────────────┬───────────────────────────────────────┘
                       │
                       ▼ (master branch only)
 ┌─────────────────────────────────────────────────────────────┐
 │  Stage 7                                                      │
 │  └─ 7️⃣ E2E Tests on Deployed Site (Playwright)               │
+│     🎭 Tests live production environment                     │
 └─────────────────────────────────────────────────────────────┘
 ```
 
@@ -184,26 +192,31 @@ All reports are uploaded as GitHub Actions artifacts with 30-day retention:
 - Creates deployment artifacts
 - **Depends on:** Stage 2 (Unit Tests only)
 
-#### 4️⃣ Security Scan
+#### 4️⃣ Security Scan (Parallel)
 - npm audit for vulnerabilities
-- Fails on high/critical issues
-- Security report upload
+- Reports high/critical issues
+- Security report upload (now saves to npm-audit.json)
 - **Depends on:** Stage 3
+- **⚠️ Advisory only** - Failures are reported but don't block deployment
+- **Runs in parallel with Performance Test**
 
-#### 5️⃣ Performance Test
+#### 5️⃣ Performance Test (Parallel)
 - Lighthouse CI audits
 - Performance budgets:
   - Performance Score: 80+
   - Accessibility Score: 80+
   - Best Practices Score: 80+
   - SEO Score: 80+
-- **Depends on:** Stage 4
+- **Depends on:** Stage 3
+- **⚠️ Advisory only** - Failures are reported but don't block deployment
+- **Runs in parallel with Security Scan**
 
 #### 6️⃣ Deploy to GitHub Pages
 - Deploys to GitHub Pages
 - **Only runs on:** master branch
 - **Only runs on:** push events (not PRs)
-- **Depends on:** Stage 5 (all previous stages must pass)
+- **Depends on:** Stage 3 (Build) only
+- **Runs even if:** Security scan or Performance tests fail
 - **Outputs:** Deployment URL
 
 #### 7️⃣ E2E Tests on Deployed Site
