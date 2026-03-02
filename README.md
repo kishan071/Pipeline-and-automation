@@ -11,10 +11,10 @@ This project showcases an **advanced 7-stage CI/CD pipeline** with:
 - **✅ Code Quality** - ESLint, Prettier, TypeScript checks
 - **🧪 Unit Testing** - Jest with coverage reporting
 - **🔨 Build Process** - Automated build and artifact management
-- **🎭 E2E Testing** - Playwright cross-browser tests
 - **🔒 Security Scanning** - npm audit vulnerability checks
 - **⚡ Performance Testing** - Lighthouse CI with performance budgets
 - **🚀 Automated Deployment** - GitHub Pages deployment on success
+- **🎭 E2E Testing** - Playwright tests on the live deployed site
 
 ## 🏗️ Pipeline Architecture
 
@@ -31,24 +31,28 @@ This project showcases an **advanced 7-stage CI/CD pipeline** with:
 │  └─ 3️⃣ Build Application (Compile & Bundle)                  │
 └─────────────────────┬───────────────────────────────────────┘
                       │
-         ┌────────────┴────────────┐
-         ▼                         ▼
-┌──────────────────┐    ┌──────────────────┐
-│  Stage 4         │    │  Stage 5         │
-│  4️⃣ E2E Tests     │    │  5️⃣ Security Scan │
-│  (Playwright)    │    │  (npm audit)     │
-└────────┬─────────┘    └────────┬─────────┘
-         └────────────┬───────────┘
                       ▼
 ┌─────────────────────────────────────────────────────────────┐
+│  Stage 4                                                      │
+│  └─ 4️⃣ Security Scan (npm audit)                             │
+└─────────────────────┬───────────────────────────────────────┘
+                      │
+                      ▼
+┌─────────────────────────────────────────────────────────────┐
+│  Stage 5                                                      │
+│  └─ 5️⃣ Performance Test (Lighthouse CI)                      │
+└─────────────────────┬───────────────────────────────────────┘
+                      │
+                      ▼ (master branch only)
+┌─────────────────────────────────────────────────────────────┐
 │  Stage 6                                                      │
-│  └─ 6️⃣ Performance Test (Lighthouse CI)                      │
+│  └─ 6️⃣ Deploy to GitHub Pages                                │
 └─────────────────────┬───────────────────────────────────────┘
                       │
                       ▼ (master branch only)
 ┌─────────────────────────────────────────────────────────────┐
 │  Stage 7                                                      │
-│  └─ 7️⃣ Deploy to GitHub Pages                                │
+│  └─ 7️⃣ E2E Tests on Deployed Site (Playwright)               │
 └─────────────────────────────────────────────────────────────┘
 ```
 
@@ -178,34 +182,38 @@ All reports are uploaded as GitHub Actions artifacts with 30-day retention:
 - Creates deployment artifacts
 - **Depends on:** Stages 1 & 2
 
-#### 4️⃣ E2E Tests (Parallel)
-- Playwright tests on Chromium
-- Screenshot on failure
-- Traces on retry
-- **Depends on:** Stage 3
-- **Runs in parallel with Security Scan**
-
-#### 5️⃣ Security Scan (Parallel)
+#### 4️⃣ Security Scan
 - npm audit for vulnerabilities
 - Fails on high/critical issues
 - Security report upload
 - **Depends on:** Stage 3
-- **Runs in parallel with E2E Tests**
 
-#### 6️⃣ Performance Test
+#### 5️⃣ Performance Test
 - Lighthouse CI audits
 - Performance budgets:
   - Performance Score: 80+
   - Accessibility Score: 80+
   - Best Practices Score: 80+
   - SEO Score: 80+
-- **Depends on:** Stages 4 & 5
+- **Depends on:** Stage 4
 
-#### 7️⃣ Deploy to GitHub Pages
+#### 6️⃣ Deploy to GitHub Pages
 - Deploys to GitHub Pages
 - **Only runs on:** master branch
 - **Only runs on:** push events (not PRs)
-- **Depends on:** Stage 6 (all previous stages must pass)
+- **Depends on:** Stage 5 (all previous stages must pass)
+- **Outputs:** Deployment URL
+
+#### 7️⃣ E2E Tests on Deployed Site
+- Playwright tests on Chromium
+- **Tests the actual deployed site**
+- Screenshot on failure
+- Traces on retry
+- 30-second wait for deployment to be ready
+- **Only runs on:** master branch (after deployment)
+- **Only runs on:** push events (not PRs)
+- **Depends on:** Stage 6 (deployment)
+- **Uses:** Live deployment URL from Stage 6
 
 ### Workflow Triggers
 - **Push to master:** Full pipeline + deployment
