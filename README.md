@@ -1,16 +1,56 @@
-# Playwright E2E Testing Project
+# Advanced CI/CD Pipeline with Playwright E2E Testing
 
-A production-ready end-to-end testing setup using Playwright with TypeScript and GitHub Actions CI/CD pipeline.
+[![CI/CD Pipeline](https://github.com/kishan071/Pipeline-and-automation/actions/workflows/ci-cd.yml/badge.svg)](https://github.com/kishan071/Pipeline-and-automation/actions/workflows/ci-cd.yml)
+
+A production-ready, multi-stage CI/CD pipeline demonstrating best practices for automated testing, security scanning, performance monitoring, and deployment.
 
 ## 📋 Overview
 
-This project demonstrates best practices for setting up automated E2E testing with:
-- **Playwright Test** framework
-- **TypeScript** for type-safe test code
-- **GitHub Actions** for automated CI/CD
-- **Multi-browser testing** (Chromium, Firefox, WebKit)
-- **HTML reporting** for test results
-- **Parallel test execution** for faster runs
+This project showcases an **advanced 7-stage CI/CD pipeline** with:
+- **🎯 Parallel Execution** - Lint and Unit Tests run simultaneously
+- **✅ Code Quality** - ESLint, Prettier, TypeScript checks
+- **🧪 Unit Testing** - Jest with coverage reporting
+- **🔨 Build Process** - Automated build and artifact management
+- **🎭 E2E Testing** - Playwright cross-browser tests
+- **🔒 Security Scanning** - npm audit vulnerability checks
+- **⚡ Performance Testing** - Lighthouse CI with performance budgets
+- **🚀 Automated Deployment** - GitHub Pages deployment on success
+
+## 🏗️ Pipeline Architecture
+
+```
+┌─────────────────────────────────────────────────────────────┐
+│  Stage 1 & 2 (Parallel)                                      │
+│  ├─ 1️⃣ Lint & Code Quality (ESLint, Prettier, TypeScript)   │
+│  └─ 2️⃣ Unit Tests (Jest with Coverage)                       │
+└─────────────────────┬───────────────────────────────────────┘
+                      │
+                      ▼
+┌─────────────────────────────────────────────────────────────┐
+│  Stage 3                                                      │
+│  └─ 3️⃣ Build Application (Compile & Bundle)                  │
+└─────────────────────┬───────────────────────────────────────┘
+                      │
+         ┌────────────┴────────────┐
+         ▼                         ▼
+┌──────────────────┐    ┌──────────────────┐
+│  Stage 4         │    │  Stage 5         │
+│  4️⃣ E2E Tests     │    │  5️⃣ Security Scan │
+│  (Playwright)    │    │  (npm audit)     │
+└────────┬─────────┘    └────────┬─────────┘
+         └────────────┬───────────┘
+                      ▼
+┌─────────────────────────────────────────────────────────────┐
+│  Stage 6                                                      │
+│  └─ 6️⃣ Performance Test (Lighthouse CI)                      │
+└─────────────────────┬───────────────────────────────────────┘
+                      │
+                      ▼ (master branch only)
+┌─────────────────────────────────────────────────────────────┐
+│  Stage 7                                                      │
+│  └─ 7️⃣ Deploy to GitHub Pages                                │
+└─────────────────────────────────────────────────────────────┘
+```
 
 ## 🚀 Getting Started
 
@@ -18,12 +58,13 @@ This project demonstrates best practices for setting up automated E2E testing wi
 
 - Node.js 18.x or higher
 - npm or yarn
+- Git
 
 ### Installation
 
-1. **Clone the repository** (if not already cloned)
+1. **Clone the repository**
    ```bash
-   git clone <your-repo-url>
+   git clone https://github.com/kishan071/Pipeline-and-automation.git
    cd "Pipeline and automation"
    ```
 
@@ -34,90 +75,379 @@ This project demonstrates best practices for setting up automated E2E testing wi
 
 3. **Install Playwright browsers**
    ```bash
-   npx playwright install
+   npx playwright install --with-deps chromium
    ```
 
-   This will download Chromium, Firefox, and WebKit browsers needed for testing.
+## 🧪 Running Tests & Scripts Locally
 
-## 🧪 Running Tests Locally
-
-### Run all tests (headless mode)
+### Code Quality & Linting
 ```bash
+# Run ESLint
+npm run lint
+
+# Auto-fix linting issues
+npm run lint:fix
+
+# Format code with Prettier
+npm run format
+
+# Check code formatting
+npm run format:check
+
+# TypeScript type checking
+npm run type-check
+```
+
+### Unit Tests
+```bash
+# Run unit tests
+npm run test:unit
+
+# Run unit tests with coverage
+npm run test:unit:coverage
+```
+
+### E2E Tests
+```bash
+# Run E2E tests (headless)
 npm run test:e2e
-```
 
-This will run all tests across all configured browsers (Chromium, Firefox, WebKit) in headless mode.
-
-### Run tests with visible browser (headed mode)
-```bash
+# Run tests with visible browser
 npm run test:headed
-```
 
-Useful for debugging - you'll see the browser window and can watch the tests execute.
+# Run all tests (unit + E2E)
+npm run test:all
 
-### Run tests for a specific browser
-```bash
-npx playwright test --project=chromium
-npx playwright test --project=firefox
-npx playwright test --project=webkit
-```
-
-### Run a specific test file
-```bash
-npx playwright test tests/example.spec.ts
-```
-
-### Run tests in debug mode
-```bash
+# Debug E2E tests
 npx playwright test --debug
 ```
 
-Opens the Playwright Inspector for step-by-step debugging.
-
-## 📊 Viewing Test Reports
-
-After running tests, view the HTML report:
-
+### Build & Deploy
 ```bash
+# Build application
+npm run build
+
+# View Playwright test report
 npm run report
 ```
 
-This opens an interactive HTML report in your browser showing:
-- Test results and status
-- Screenshots (on failure)
-- Traces (on retry)
-- Detailed test execution logs
+## 📊 Reports & Artifacts
 
-## 🔄 GitHub Actions CI/CD
+The pipeline generates multiple types of reports:
 
-### Automatic Test Execution
+### Test Reports
+- **Unit Test Coverage** - Generated in `coverage/` directory
+- **E2E Test Reports** - Playwright HTML report in `playwright-report/`
+- **Test Results** - Detailed results in `test-results/`
 
-The project includes a GitHub Actions workflow that automatically runs tests when code is pushed to the `master` branch.
+### View Reports Locally
+```bash
+# Playwright E2E report
+npm run report
 
-**Workflow Details:**
-- **Trigger:** Push to `master` branch (after merge)
-- **Runners:** Ubuntu-latest
+# Coverage report
+open coverage/lcov-report/index.html  # Mac/Linux
+start coverage/lcov-report/index.html  # Windows
+```
+
+### CI Artifacts
+All reports are uploaded as GitHub Actions artifacts with 30-day retention:
+- Coverage reports
+- E2E test results
+- Security audit reports
+- Lighthouse performance reports
+
+## 🔄 CI/CD Pipeline Details
+
+### Pipeline Stages
+
+#### 1️⃣ Lint & Code Quality (Parallel)
+- ESLint for code quality
+- Prettier for consistent formatting
+- TypeScript type checking
+- **Runs in parallel with Unit Tests**
+
+#### 2️⃣ Unit Tests (Parallel)
+- Jest unit tests with TypeScript
+- Code coverage collection
+- Coverage report upload
+- **Runs in parallel with Lint & Code Quality**
+
+#### 3️⃣ Build Application
+- Builds static site from source
+- Creates deployment artifacts
+- **Depends on:** Stages 1 & 2
+
+#### 4️⃣ E2E Tests (Parallel)
+- Playwright tests on Chromium
+- Screenshot on failure
+- Traces on retry
+- **Depends on:** Stage 3
+- **Runs in parallel with Security Scan**
+
+#### 5️⃣ Security Scan (Parallel)
+- npm audit for vulnerabilities
+- Fails on high/critical issues
+- Security report upload
+- **Depends on:** Stage 3
+- **Runs in parallel with E2E Tests**
+
+#### 6️⃣ Performance Test
+- Lighthouse CI audits
+- Performance budgets:
+  - Performance Score: 80+
+  - Accessibility Score: 80+
+  - Best Practices Score: 80+
+  - SEO Score: 80+
+- **Depends on:** Stages 4 & 5
+
+#### 7️⃣ Deploy to GitHub Pages
+- Deploys to GitHub Pages
+- **Only runs on:** master branch
+- **Only runs on:** push events (not PRs)
+- **Depends on:** Stage 6 (all previous stages must pass)
+
+### Workflow Triggers
+- **Push to master:** Full pipeline + deployment
+- **Pull Request:** Full pipeline (no deployment)
+
+### Pipeline Configuration
+- **Runners:** ubuntu-latest
 - **Node Version:** 18.x
-- **Browser Matrix:** Tests run in parallel across Chromium and Firefox
-- **Caching:** Node modules are cached to speed up builds
-- **Environment Variables:** `BASE_URL` can be configured
+- **Concurrency:** Automatically managed
+- **Artifact Retention:** 30 days for reports, 7 days for builds
 
-### Workflow Steps
+## 🛠️ Technology Stack
 
-1. Checkout code
-2. Setup Node.js 18
-3. Cache node_modules for faster builds
-4. Install dependencies with `npm ci`
-5. Install Playwright browsers with dependencies
-6. Run E2E tests for each browser (parallel jobs)
-7. Upload HTML report as artifact (even if tests fail)
+### Testing & Quality
+- **Playwright** - E2E testing framework
+- **Jest** - Unit testing framework
+- **ESLint** - JavaScript/TypeScript linting
+- **Prettier** - Code formatting
+- **TypeScript** - Type-safe development
 
-### Accessing Test Reports in GitHub Actions
+### CI/CD & DevOps
+- **GitHub Actions** - CI/CD automation
+- **Lighthouse CI** - Performance testing
+- **npm audit** - Security vulnerability scanning
+- **GitHub Pages** - Static site hosting
 
-1. Navigate to your repository on GitHub
-2. Click on the **Actions** tab
-3. Select the workflow run you want to inspect
-4. Scroll down to the **Artifacts** section
+## 📁 Project Structure
+
+```
+Pipeline-and-automation/
+├── .github/
+│   └── workflows/
+│       ├── ci-cd.yml          # Main CI/CD pipeline (7 stages)
+│       └── e2e.yml             # Legacy E2E-only workflow
+├── src/
+│   ├── static/
+│   │   ├── index.html         # Main website
+│   │   └── styles.css         # Styles
+│   └── utils.ts               # Utility functions
+├── tests/
+│   ├── unit/
+│   │   └── utils.test.ts      # Unit tests
+│   └── example.spec.ts        # E2E tests
+├── public/                     # Build output (generated)
+├── coverage/                   # Test coverage reports (generated)
+├── playwright-report/          # E2E test reports (generated)
+├── test-results/               # Test artifacts (generated)
+├── .eslintrc.json             # ESLint configuration
+├── .prettierrc                # Prettier configuration
+├── jest.config.ts             # Jest configuration
+├── playwright.config.ts       # Playwright configuration
+├── .lighthouserc.json         # Lighthouse CI configuration
+├── tsconfig.json              # TypeScript configuration
+├── build.js                   # Build script
+└── package.json               # Dependencies & scripts
+```
+
+## ⚙️ Configuration Files
+
+### ESLint (`.eslintrc.json`)
+- TypeScript-aware linting
+- Playwright plugin for test files
+- Prettier integration
+- Custom rules for test files
+
+### Prettier (`.prettierrc`)
+- Consistent code formatting
+- 100 character line width
+- Single quotes, semicolons
+- 2-space indentation
+
+### Jest (`jest.config.ts`)
+- TypeScript support via ts-jest
+- Coverage thresholds: 70% across all metrics
+- Unit tests in `tests/unit/`
+
+### Playwright (`playwright.config.ts`)
+- Multi-browser support (Chromium, Firefox, WebKit)
+- Parallel test execution
+- Retry on CI (1 retry)
+- Screenshots on failure
+- Traces on retry
+
+### Lighthouse CI (`.lighthouserc.json`)
+- Desktop preset
+- 3 runs for consistency
+- Performance budgets (80+ scores)
+- Core Web Vitals monitoring
+
+## 🔧 Setup GitHub Pages Deployment
+
+To enable GitHub Pages deployment:
+
+1. **Navigate to Repository Settings**
+   - Go to your repository on GitHub
+   - Click **Settings** → **Pages**
+
+2. **Configure Source**
+   - Under **Build and deployment**
+   - Source: **GitHub Actions**
+   - Save the settings
+
+3. **Enable Workflow Permissions**
+   - Go to **Settings** → **Actions** → **General**
+   - Under **Workflow permissions**
+   - Select "Read and write permissions"
+   - Check "Allow GitHub Actions to create and approve pull requests"
+   - Save
+
+4. **Push to Master**
+   - The pipeline will automatically deploy on successful runs
+
+5. **Access Your Site**
+   - URL: `https://kishan071.github.io/Pipeline-and-automation/`
+
+## 🐛 Troubleshooting
+
+### Pipeline Failures
+
+#### Lint Stage Fails
+```bash
+# Run locally to see issues
+npm run lint
+
+# Auto-fix most issues
+npm run lint:fix
+
+# Format code
+npm run format
+```
+
+#### Unit Tests Fail
+```bash
+# Run tests locally
+npm run test:unit
+
+# Run with coverage to see what's missing
+npm run test:unit:coverage
+```
+
+#### E2E Tests Fail
+```bash
+# Run tests in headed mode to see what's happening
+npm run test:headed
+
+# Debug specific test
+npx playwright test --debug
+
+# Update snapshots if needed
+npx playwright test --update-snapshots
+```
+
+#### Security Scan Fails
+```bash
+# Run audit locally
+npm audit
+
+# Fix vulnerabilities automatically
+npm audit fix
+
+# For breaking changes, manually update packages
+```
+
+#### Performance Test Fails
+- Check Lighthouse reports in CI artifacts
+- Review performance budgets in `.lighthouserc.json`
+- Optimize images, CSS, and JavaScript
+- Consider adjusting thresholds if necessary
+
+#### Deployment Fails
+- Verify GitHub Pages is enabled in repository settings
+- Check workflow permissions (needs write access)
+- Ensure `public/` directory exists after build
+- Review deployment logs in GitHub Actions
+
+### Common Issues
+
+**Issue:** `ENOENT: no such file or directory`
+- **Solution:** Run `npm install` to ensure all dependencies are installed
+
+**Issue:** Playwright browsers not found
+- **Solution:** Run `npx playwright install --with-deps`
+
+**Issue:** Tests pass locally but fail in CI
+- **Solution:** Check for environment-specific code, timing issues, or missing CI environment variables
+
+**Issue:** Memory issues in CI
+- **Solution:** Reduce parallel workers in `playwright.config.ts` for CI environment
+
+## 📈 Performance Metrics
+
+The pipeline tracks the following metrics:
+
+### Code Coverage
+- **Target:** 70% minimum across all metrics
+- **Tracked:** Branches, Functions, Lines, Statements
+
+### Lighthouse Scores (Minimum 80/100)
+- **Performance** - Load time and responsiveness
+- **Accessibility** - WCAG compliance
+- **Best Practices** - Security and modern standards
+- **SEO** - Search engine optimization
+
+### Core Web Vitals
+- **First Contentful Paint (FCP):** < 2s
+- **Largest Contentful Paint (LCP):** < 2.5s
+- **Cumulative Layout Shift (CLS):** < 0.1
+- **Total Blocking Time (TBT):** < 300ms
+- **Speed Index:** < 3s
+
+## 🤝 Contributing
+
+1. Fork the repository
+2. Create a feature branch (`git checkout -b feature/amazing-feature`)
+3. Make your changes
+4. Run all checks locally:
+   ```bash
+   npm run lint
+   npm run format
+   npm run type-check
+   npm run test:all
+   npm run build
+   ```
+5. Commit your changes (`git commit -m 'Add amazing feature'`)
+6. Push to the branch (`git push origin feature/amazing-feature`)
+7. Open a Pull Request
+
+## 📝 License
+
+This project is licensed under the MIT License.
+
+## 🙏 Acknowledgments
+
+- [Playwright](https://playwright.dev/) - End-to-end testing
+- [Jest](https://jestjs.io/) - Unit testing
+- [Lighthouse CI](https://github.com/GoogleChrome/lighthouse-ci) - Performance testing
+- [GitHub Actions](https://github.com/features/actions) - CI/CD automation
+
+---
+
+Built with ❤️ by [kishan071](https://github.com/kishan071)
+
 5. Download the `playwright-report-chromium` or `playwright-report-firefox` artifact
 6. Extract the ZIP file and open `index.html` in your browser
 

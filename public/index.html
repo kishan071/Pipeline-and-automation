@@ -1,0 +1,104 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="Advanced CI/CD Pipeline with GitHub Actions - Playwright E2E Testing">
+    <title>CI/CD Pipeline Dashboard</title>
+    <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>🚀 Advanced CI/CD Pipeline</h1>
+            <p class="subtitle">Multi-Stage Pipeline with Playwright E2E Testing</p>
+        </header>
+
+        <main>
+            <section class="pipeline-stages">
+                <h2>Pipeline Stages</h2>
+                <div class="stages-grid">
+                    <div class="stage">
+                        <div class="stage-icon">✅</div>
+                        <h3>1. Lint & Code Quality</h3>
+                        <p>ESLint, Prettier, TypeScript checks</p>
+                    </div>
+                    <div class="stage">
+                        <div class="stage-icon">🧪</div>
+                        <h3>2. Unit Tests</h3>
+                        <p>Jest unit tests with coverage</p>
+                    </div>
+                    <div class="stage">
+                        <div class="stage-icon">🔨</div>
+                        <h3>3. Build Application</h3>
+                        <p>Compile and bundle assets</p>
+                    </div>
+                    <div class="stage">
+                        <div class="stage-icon">🎭</div>
+                        <h3>4. E2E Tests</h3>
+                        <p>Playwright tests across browsers</p>
+                    </div>
+                    <div class="stage">
+                        <div class="stage-icon">🔒</div>
+                        <h3>5. Security Scan</h3>
+                        <p>npm audit vulnerability check</p>
+                    </div>
+                    <div class="stage">
+                        <div class="stage-icon">⚡</div>
+                        <h3>6. Performance Test</h3>
+                        <p>Lighthouse CI performance audits</p>
+                    </div>
+                    <div class="stage">
+                        <div class="stage-icon">🚢</div>
+                        <h3>7. Deploy</h3>
+                        <p>Deploy to GitHub Pages</p>
+                    </div>
+                </div>
+            </section>
+
+            <section class="features">
+                <h2>Features</h2>
+                <ul>
+                    <li>✨ <strong>Parallel Execution:</strong> Lint and Unit Tests run simultaneously</li>
+                    <li>🔄 <strong>Stage Dependencies:</strong> Builds only after quality checks pass</li>
+                    <li>🎯 <strong>Comprehensive Testing:</strong> Unit, E2E, Security, and Performance</li>
+                    <li>📊 <strong>Coverage Reports:</strong> Automated code coverage tracking</li>
+                    <li>🛡️ <strong>Security First:</strong> Vulnerability scanning on every build</li>
+                    <li>⚡ <strong>Performance Monitoring:</strong> Lighthouse audits with budgets</li>
+                    <li>🚀 <strong>Automated Deployment:</strong> Push to master deploys to GitHub Pages</li>
+                </ul>
+            </section>
+
+            <section class="tech-stack">
+                <h2>Technology Stack</h2>
+                <div class="tech-grid">
+                    <span class="tech-badge">TypeScript</span>
+                    <span class="tech-badge">Playwright</span>
+                    <span class="tech-badge">Jest</span>
+                    <span class="tech-badge">ESLint</span>
+                    <span class="tech-badge">Prettier</span>
+                    <span class="tech-badge">Lighthouse CI</span>
+                    <span class="tech-badge">GitHub Actions</span>
+                </div>
+            </section>
+
+            <section class="cta">
+                <h2>Get Started</h2>
+                <p>View the source code and documentation on GitHub</p>
+                <a href="https://github.com/kishan071/Pipeline-and-automation" class="btn" target="_blank">
+                    View on GitHub
+                </a>
+            </section>
+        </main>
+
+        <footer>
+            <p>Built with ❤️ using GitHub Actions CI/CD Pipeline</p>
+            <p class="timestamp">Last deployed: <span id="timestamp"></span></p>
+        </footer>
+    </div>
+
+    <script>
+        document.getElementById('timestamp').textContent = new Date().toLocaleString();
+    </script>
+</body>
+</html>

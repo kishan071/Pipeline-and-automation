@@ -1,0 +1,11 @@
+node_modules/
+dist/
+public/
+build/
+playwright-report/
+test-results/
+blob-report/
+coverage/
+package-lock.json
+pnpm-lock.yaml
+yarn.lock
