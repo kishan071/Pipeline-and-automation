@@ -7,6 +7,7 @@ A production-ready, multi-stage CI/CD pipeline demonstrating best practices for 
 ## 📋 Overview
 
 This project showcases an **advanced 7-stage CI/CD pipeline** with:
+
 - **🎯 Parallel Execution** - Lint and Unit Tests run simultaneously; Security and Performance tests run in parallel
 - **✅ Code Quality** - ESLint, Prettier, TypeScript checks (advisory)
 - **🧪 Unit Testing** - Jest with coverage reporting (blocking)
@@ -17,6 +18,7 @@ This project showcases an **advanced 7-stage CI/CD pipeline** with:
 - **🎭 E2E Testing** - Playwright tests on the live deployed site
 
 **Quality Gates:**
+
 - **🛑 Blocking:** Unit Tests, Build - Must pass for deployment
 - **⚠️ Advisory:** Lint, Security, Performance - Show ❌ on failure but don't block deployment
 - Advisory stages exit with error code but use `continue-on-error: true` at the job level
@@ -77,12 +79,14 @@ This project showcases an **advanced 7-stage CI/CD pipeline** with:
 ### Installation
 
 1. **Clone the repository**
+
    ```bash
    git clone https://github.com/kishan071/Pipeline-and-automation.git
    cd "Pipeline and automation"
    ```
 
 2. **Install dependencies**
+
    ```bash
    npm install
    ```
@@ -95,6 +99,7 @@ This project showcases an **advanced 7-stage CI/CD pipeline** with:
 ## 🧪 Running Tests & Scripts Locally
 
 ### Code Quality & Linting
+
 ```bash
 # Run ESLint
 npm run lint
@@ -113,6 +118,7 @@ npm run type-check
 ```
 
 ### Unit Tests
+
 ```bash
 # Run unit tests
 npm run test:unit
@@ -122,6 +128,7 @@ npm run test:unit:coverage
 ```
 
 ### E2E Tests
+
 ```bash
 # Run E2E tests (headless)
 npm run test:e2e
@@ -137,6 +144,7 @@ npx playwright test --debug
 ```
 
 ### Build & Deploy
+
 ```bash
 # Build application
 npm run build
@@ -150,11 +158,13 @@ npm run report
 The pipeline generates multiple types of reports:
 
 ### Test Reports
+
 - **Unit Test Coverage** - Generated in `coverage/` directory
 - **E2E Test Reports** - Playwright HTML report in `playwright-report/`
 - **Test Results** - Detailed results in `test-results/`
 
 ### View Reports Locally
+
 ```bash
 # Playwright E2E report
 npm run report
@@ -165,7 +175,9 @@ start coverage/lcov-report/index.html  # Windows
 ```
 
 ### CI Artifacts
+
 All reports are uploaded as GitHub Actions artifacts with 30-day retention:
+
 - Coverage reports
 - E2E test results
 - Security audit reports
@@ -176,6 +188,7 @@ All reports are uploaded as GitHub Actions artifacts with 30-day retention:
 ### Pipeline Stages
 
 #### 1️⃣ Lint & Code Quality (Parallel)
+
 - ESLint for code quality
 - Prettier for consistent formatting
 - TypeScript type checking
@@ -185,6 +198,7 @@ All reports are uploaded as GitHub Actions artifacts with 30-day retention:
 - Final status report shows which checks failed
 
 #### 2️⃣ Unit Tests (Parallel)
+
 - Jest unit tests with TypeScript
 - Code coverage collection
 - Coverage report upload
@@ -192,11 +206,13 @@ All reports are uploaded as GitHub Actions artifacts with 30-day retention:
 - **🛑 Blocking** - Must pass for pipeline to continue
 
 #### 3️⃣ Build Application
+
 - Builds static site from source
 - Creates deployment artifacts
 - **Depends on:** Stage 2 (Unit Tests only)
 
 #### 4️⃣ Security Scan (Parallel)
+
 - npm audit for vulnerabilities
 - Reports high/critical issues
 - Security report upload (saves to npm-audit.json)
@@ -206,6 +222,7 @@ All reports are uploaded as GitHub Actions artifacts with 30-day retention:
 - Vulnerability counts displayed in logs
 
 #### 5️⃣ Performance Test (Parallel)
+
 - Lighthouse CI audits
 - Performance budgets:
   - Performance Score: 80+
@@ -218,6 +235,7 @@ All reports are uploaded as GitHub Actions artifacts with 30-day retention:
 - Reports uploaded only if Lighthouse runs successfully
 
 #### 6️⃣ Deploy to GitHub Pages
+
 - Deploys to GitHub Pages
 - **Only runs on:** master branch
 - **Only runs on:** push events (not PRs)
@@ -226,6 +244,7 @@ All reports are uploaded as GitHub Actions artifacts with 30-day retention:
 - **Outputs:** Deployment URL
 
 #### 7️⃣ E2E Tests on Deployed Site
+
 - Playwright tests on Chromium
 - **Tests the actual deployed site**
 - Screenshot on failure
@@ -237,10 +256,12 @@ All reports are uploaded as GitHub Actions artifacts with 30-day retention:
 - **Uses:** Live deployment URL from Stage 6
 
 ### Workflow Triggers
+
 - **Push to master:** Full pipeline + deployment
 - **Pull Request:** Full pipeline (no deployment)
 
 ### Pipeline Configuration
+
 - **Runners:** ubuntu-latest
 - **Node Version:** 18.x
 - **Concurrency:** Automatically managed
@@ -249,6 +270,7 @@ All reports are uploaded as GitHub Actions artifacts with 30-day retention:
 ## 🛠️ Technology Stack
 
 ### Testing & Quality
+
 - **Playwright** - E2E testing framework
 - **Jest** - Unit testing framework
 - **ESLint** - JavaScript/TypeScript linting
@@ -256,6 +278,7 @@ All reports are uploaded as GitHub Actions artifacts with 30-day retention:
 - **TypeScript** - Type-safe development
 
 ### CI/CD & DevOps
+
 - **GitHub Actions** - CI/CD automation
 - **Lighthouse CI** - Performance testing
 - **npm audit** - Security vulnerability scanning
@@ -295,23 +318,27 @@ Pipeline-and-automation/
 ## ⚙️ Configuration Files
 
 ### ESLint (`.eslintrc.json`)
+
 - TypeScript-aware linting
 - Playwright plugin for test files
 - Prettier integration
 - Custom rules for test files
 
 ### Prettier (`.prettierrc`)
+
 - Consistent code formatting
 - 100 character line width
 - Single quotes, semicolons
 - 2-space indentation
 
 ### Jest (`jest.config.ts`)
+
 - TypeScript support via ts-jest
 - Coverage thresholds: 70% across all metrics
 - Unit tests in `tests/unit/`
 
 ### Playwright (`playwright.config.ts`)
+
 - Multi-browser support (Chromium, Firefox, WebKit)
 - Parallel test execution
 - Retry on CI (1 retry)
@@ -319,6 +346,7 @@ Pipeline-and-automation/
 - Traces on retry
 
 ### Lighthouse CI (`.lighthouserc.json`)
+
 - Desktop preset
 - 3 runs for consistency
 - Performance budgets (80+ scores)
@@ -355,6 +383,7 @@ To enable GitHub Pages deployment:
 ### Pipeline Failures
 
 #### Lint Stage Fails
+
 ```bash
 # Run locally to see issues
 npm run lint
@@ -367,6 +396,7 @@ npm run format
 ```
 
 #### Unit Tests Fail
+
 ```bash
 # Run tests locally
 npm run test:unit
@@ -376,6 +406,7 @@ npm run test:unit:coverage
 ```
 
 #### E2E Tests Fail
+
 ```bash
 # Run tests in headed mode to see what's happening
 npm run test:headed
@@ -388,6 +419,7 @@ npx playwright test --update-snapshots
 ```
 
 #### Security Scan Fails
+
 ```bash
 # Run audit locally
 npm audit
@@ -399,12 +431,14 @@ npm audit fix
 ```
 
 #### Performance Test Fails
+
 - Check Lighthouse reports in CI artifacts
 - Review performance budgets in `.lighthouserc.json`
 - Optimize images, CSS, and JavaScript
 - Consider adjusting thresholds if necessary
 
 #### Deployment Fails
+
 - Verify GitHub Pages is enabled in repository settings
 - Check workflow permissions (needs write access)
 - Ensure `public/` directory exists after build
@@ -413,15 +447,19 @@ npm audit fix
 ### Common Issues
 
 **Issue:** `ENOENT: no such file or directory`
+
 - **Solution:** Run `npm install` to ensure all dependencies are installed
 
 **Issue:** Playwright browsers not found
+
 - **Solution:** Run `npx playwright install --with-deps`
 
 **Issue:** Tests pass locally but fail in CI
+
 - **Solution:** Check for environment-specific code, timing issues, or missing CI environment variables
 
 **Issue:** Memory issues in CI
+
 - **Solution:** Reduce parallel workers in `playwright.config.ts` for CI environment
 
 ## 📈 Performance Metrics
@@ -429,16 +467,19 @@ npm audit fix
 The pipeline tracks the following metrics:
 
 ### Code Coverage
+
 - **Target:** 70% minimum across all metrics
 - **Tracked:** Branches, Functions, Lines, Statements
 
 ### Lighthouse Scores (Minimum 80/100)
+
 - **Performance** - Load time and responsiveness
 - **Accessibility** - WCAG compliance
 - **Best Practices** - Security and modern standards
 - **SEO** - Search engine optimization
 
 ### Core Web Vitals
+
 - **First Contentful Paint (FCP):** < 2s
 - **Largest Contentful Paint (LCP):** < 2.5s
 - **Cumulative Layout Shift (CLS):** < 0.1
@@ -485,6 +526,7 @@ The reports are retained for 30 days by default.
 ### Workflow Configuration
 
 The workflow is configured to:
+
 - ✅ Run only on pushes to `master` (not on PRs to master)
 - ✅ Use matrix strategy for testing multiple browsers in parallel
 - ✅ Cache dependencies to reduce build time
@@ -512,6 +554,7 @@ The workflow is configured to:
 ### Playwright Configuration
 
 The `playwright.config.ts` file includes:
+
 - **Test Directory:** `./tests`
 - **Parallel Execution:** Enabled for faster test runs
 - **Retries:** 1 retry on failure (helps with flaky tests)
@@ -524,6 +567,7 @@ The `playwright.config.ts` file includes:
 ### Browser Projects
 
 Three browser projects are configured:
+
 - **Chromium** (Google Chrome)
 - **Firefox**
 - **WebKit** (Safari)

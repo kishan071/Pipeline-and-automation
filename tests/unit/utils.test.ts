@@ -1,12 +1,4 @@
-import {
-  capitalize,
-  slugify,
-  truncate,
-  add,
-  multiply,
-  isEven,
-  clamp,
-} from '../../src/utils';
+import { capitalize, slugify, truncate, add, multiply, isEven, clamp } from '../../src/utils';
 
 describe('String Utilities', () => {
   describe('capitalize', () => {
