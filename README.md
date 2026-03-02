@@ -170,17 +170,19 @@ All reports are uploaded as GitHub Actions artifacts with 30-day retention:
 - Prettier for consistent formatting
 - TypeScript type checking
 - **Runs in parallel with Unit Tests**
+- **⚠️ Advisory only** - Failures are reported but don't block the pipeline
 
 #### 2️⃣ Unit Tests (Parallel)
 - Jest unit tests with TypeScript
 - Code coverage collection
 - Coverage report upload
 - **Runs in parallel with Lint & Code Quality**
+- **🛑 Blocking** - Must pass for pipeline to continue
 
 #### 3️⃣ Build Application
 - Builds static site from source
 - Creates deployment artifacts
-- **Depends on:** Stages 1 & 2
+- **Depends on:** Stage 2 (Unit Tests only)
 
 #### 4️⃣ Security Scan
 - npm audit for vulnerabilities
