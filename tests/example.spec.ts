@@ -13,15 +13,15 @@ test.describe('Example.com E2E Tests', () => {
     await expect(h1).toHaveText('Example Domain');
   });
 
-  test('should verify page has more information link', async ({ page }) => {
+  test('should verify page has learn more link', async ({ page }) => {
     // Navigate to the example.com website
     await page.goto('https://example.com');
 
-    // Verify the "More information" link is visible
-    const moreInfoLink = page.locator('a:has-text("More information")');
-    await expect(moreInfoLink).toBeVisible();
-    
+    // Verify the "Learn more" link is visible
+    const learnMoreLink = page.locator('a:has-text("Learn more")');
+    await expect(learnMoreLink).toBeVisible();
+
     // Verify the link has the correct href
-    await expect(moreInfoLink).toHaveAttribute('href', 'https://www.iana.org/domains/example');
+    await expect(learnMoreLink).toHaveAttribute('href', 'https://iana.org/domains/example');
   });
 });
